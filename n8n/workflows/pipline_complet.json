@@ -1,0 +1,335 @@
+{
+  "name": "NBA Neo4j — Pipeline Complet",
+  "nodes": [
+
+    {
+      "id": "node_trigger_manual",
+      "name": "Déclencheur Manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [80, 300],
+      "parameters": {}
+    },
+
+    {
+      "id": "node_trigger_cron",
+      "name": "Déclencheur Quotidien (03h00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [80, 480],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 3 * * *" }]
+        }
+      }
+    },
+
+    {
+      "id": "node_set_config",
+      "name": "Configuration Globale",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [300, 380],
+      "parameters": {
+        "mode": "manual",
+        "fields": {
+          "values": [
+            { "name": "neo4j_uri",      "type": "string", "value": "bolt://neo4j:7687" },
+            { "name": "neo4j_user",     "type": "string", "value": "neo4j" },
+            { "name": "neo4j_password", "type": "string", "value": "={{ $credentials.neo4jApi.password }}" },
+            { "name": "batch_size",     "type": "number", "value": 500 },
+            { "name": "pipeline_id",    "type": "string", "value": "={{ $now.toISO() }}" }
+          ]
+        }
+      }
+    },
+
+    {
+      "id": "node_validate_csv_games",
+      "name": "Valider games.csv",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 200],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// ═══════════════════════════════════════\n// VALIDATION games.csv\n// Applique toutes les règles de l'Algo 1\n// ═══════════════════════════════════════\nconst fs = require('fs');\nconst path = require('path');\n\nconst DATA_DIR = process.env.NBA_DATA_DIR || '/data/nba';\nconst filePath = path.join(DATA_DIR, 'games.csv');\n\nif (!fs.existsSync(filePath)) {\n  throw new Error(`games.csv introuvable dans ${DATA_DIR}`);\n}\n\nconst content = fs.readFileSync(filePath, 'utf8');\nconst lines = content.trim().split('\\n');\nconst headers = lines[0].split(',').map(h => h.trim().replace(/\"/g, ''));\n\nconst rows = [];\nconst erreurs = [];\nconst seenIds = new Set();\n\nfor (let i = 1; i < lines.length; i++) {\n  const vals = lines[i].split(',');\n  if (vals.length < headers.length) continue;\n\n  const row = {};\n  headers.forEach((h, idx) => {\n    row[h] = vals[idx] ? vals[idx].trim().replace(/\"/g, '') : null;\n  });\n\n  const gameId = parseInt(row['GAME_ID']);\n  const homePts = row['PTS_home'] ? parseFloat(row['PTS_home']) : null;\n  const awayPts = row['PTS_away'] ? parseFloat(row['PTS_away']) : null;\n  const homeId  = parseInt(row['HOME_TEAM_ID']);\n  const awayId  = parseInt(row['VISITOR_TEAM_ID']);\n  const season  = parseInt(row['SEASON']);\n\n  // Règle 1 : GAME_ID non-null\n  if (isNaN(gameId)) { erreurs.push(`Ligne ${i}: GAME_ID null`); continue; }\n\n  // Règle 2 : pas de doublon\n  if (seenIds.has(gameId)) { continue; }\n  seenIds.add(gameId);\n\n  // Règle 3 : home ≠ visitor\n  if (homeId === awayId) { erreurs.push(`Ligne ${i}: HOME=VISITOR game ${gameId}`); continue; }\n\n  // Règle 4 : scores valides\n  if (homePts !== null && (homePts < 0 || homePts > 200)) row['PTS_home'] = null;\n  if (awayPts !== null && (awayPts < 0 || awayPts > 200)) row['PTS_away'] = null;\n\n  // Règle 5 : saison valide\n  if (season < 1990 || season > 2030) { erreurs.push(`Ligne ${i}: saison hors bornes ${season}`); continue; }\n\n  rows.push(row);\n}\n\nreturn [{\n  json: {\n    label: 'games',\n    rows: rows,\n    count: rows.length,\n    erreurs: erreurs,\n    nb_erreurs: erreurs.length\n  }\n}];"
+      }
+    },
+
+    {
+      "id": "node_validate_csv_details",
+      "name": "Valider games_details.csv",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 380],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\n\nconst DATA_DIR = process.env.NBA_DATA_DIR || '/data/nba';\nconst filePath = path.join(DATA_DIR, 'games_details.csv');\n\nif (!fs.existsSync(filePath)) {\n  throw new Error(`games_details.csv introuvable dans ${DATA_DIR}`);\n}\n\nconst content = fs.readFileSync(filePath, 'utf8');\nconst lines = content.trim().split('\\n');\nconst headers = lines[0].split(',').map(h => h.trim().replace(/\"/g, ''));\n\nconst rows = [];\nconst erreurs = [];\nconst seenKeys = new Set();\n\nfunction parseMinToSeconds(minStr) {\n  if (!minStr || minStr === 'null') return null;\n  const parts = minStr.split(':');\n  if (parts.length !== 2) return null;\n  const total = parseInt(parts[0]) * 60 + parseInt(parts[1]);\n  return (total >= 0 && total <= 3180) ? total : null;\n}\n\nfor (let i = 1; i < lines.length; i++) {\n  const vals = lines[i].split(',');\n  if (vals.length < headers.length) continue;\n\n  const row = {};\n  headers.forEach((h, idx) => {\n    const v = vals[idx] ? vals[idx].trim().replace(/\"/g, '') : null;\n    row[h] = (v === '' || v === 'nan' || v === 'NaN') ? null : v;\n  });\n\n  const gameId   = parseInt(row['GAME_ID']);\n  const playerId = parseInt(row['PLAYER_ID']);\n  if (isNaN(gameId) || isNaN(playerId)) continue;\n\n  const key = `${gameId}_${playerId}`;\n  if (seenKeys.has(key)) continue;\n  seenKeys.add(key);\n\n  const fgm = row['FGM'] ? parseFloat(row['FGM']) : null;\n  const fga = row['FGA'] ? parseFloat(row['FGA']) : null;\n  const fg3m= row['FG3M']? parseFloat(row['FG3M']): null;\n  const fg3a= row['FG3A']? parseFloat(row['FG3A']): null;\n  const ftm = row['FTM'] ? parseFloat(row['FTM']) : null;\n  const fta = row['FTA'] ? parseFloat(row['FTA']) : null;\n  const pts = row['PTS'] ? parseFloat(row['PTS']) : null;\n\n  // Validation uniquement pour les joueurs ayant joué\n  if (row['MIN'] !== null) {\n    if (fgm !== null && fga !== null && fgm > fga) { erreurs.push(`${key}: FGM>FGA`); continue; }\n    if (fg3m!== null && fg3a!== null && fg3m > fg3a){ erreurs.push(`${key}: FG3M>FG3A`); continue; }\n    if (fg3a!== null && fga !== null && fg3a > fga) { erreurs.push(`${key}: FG3A>FGA`);  continue; }\n    if (ftm !== null && fta !== null && ftm > fta)  { erreurs.push(`${key}: FTM>FTA`);  continue; }\n    if (fgm !== null && fg3m!== null && ftm !== null && pts !== null) {\n      const calcPts = (fgm - fg3m) * 2 + fg3m * 3 + ftm;\n      if (Math.abs(calcPts - pts) > 1) { erreurs.push(`${key}: pts incohérents`); continue; }\n    }\n  }\n\n  row['MIN_SECONDES'] = parseMinToSeconds(row['MIN']);\n  row['a_joue'] = row['MIN'] !== null;\n  rows.push(row);\n}\n\nreturn [{\n  json: {\n    label: 'details',\n    rows: rows,\n    count: rows.length,\n    erreurs: erreurs,\n    nb_erreurs: erreurs.length\n  }\n}];"
+      }
+    },
+
+    {
+      "id": "node_validate_csv_players",
+      "name": "Valider players.csv",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 560],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\n\nconst DATA_DIR = process.env.NBA_DATA_DIR || '/data/nba';\nconst filePath = path.join(DATA_DIR, 'players.csv');\n\nconst content = fs.readFileSync(filePath, 'utf8');\nconst lines = content.trim().split('\\n');\nconst headers = lines[0].split(',').map(h => h.trim().replace(/\"/g, ''));\n\nconst rows = [];\nconst erreurs = [];\nconst seen = new Set();\n\nfor (let i = 1; i < lines.length; i++) {\n  const vals = lines[i].split(',');\n  const row = {};\n  headers.forEach((h, idx) => {\n    const v = vals[idx] ? vals[idx].trim().replace(/\"/g, '') : null;\n    row[h] = (v === '' || v === 'nan') ? null : v;\n  });\n\n  const pid    = parseInt(row['PLAYER_ID']);\n  const tid    = parseInt(row['TEAM_ID']);\n  const season = parseInt(row['SEASON']);\n  const name   = row['PLAYER_NAME'];\n\n  if (isNaN(pid) || isNaN(tid) || !name || name.trim() === '') continue;\n  if (season < 1990 || season > 2030) continue;\n\n  const key = `${pid}_${tid}_${season}`;\n  if (seen.has(key)) continue;\n  seen.add(key);\n\n  rows.push(row);\n}\n\nreturn [{\n  json: {\n    label: 'players',\n    rows: rows,\n    count: rows.length,\n    erreurs: erreurs,\n    nb_erreurs: erreurs.length\n  }\n}];"
+      }
+    },
+
+    {
+      "id": "node_validate_csv_ranking",
+      "name": "Valider ranking.csv",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 740],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\n\nconst DATA_DIR = process.env.NBA_DATA_DIR || '/data/nba';\nconst filePath = path.join(DATA_DIR, 'ranking.csv');\n\nconst content = fs.readFileSync(filePath, 'utf8');\nconst lines = content.trim().split('\\n');\nconst headers = lines[0].split(',').map(h => h.trim().replace(/\"/g, ''));\n\nconst rows = [];\nconst erreurs = [];\nconst seen = new Set();\n\nfor (let i = 1; i < lines.length; i++) {\n  const vals = lines[i].split(',');\n  const row = {};\n  headers.forEach((h, idx) => {\n    const v = vals[idx] ? vals[idx].trim().replace(/\"/g, '') : null;\n    row[h] = (v === '' || v === 'nan') ? null : v;\n  });\n\n  const tid  = parseInt(row['TEAM_ID']);\n  const date = row['STANDINGSDATE'];\n  const conf = row['CONFERENCE'];\n  const W = parseInt(row['W']);\n  const L = parseInt(row['L']);\n  const G = parseInt(row['G']);\n\n  if (isNaN(tid) || !date) continue;\n  if (!['East','West'].includes(conf)) continue;\n  if (!isNaN(W) && !isNaN(L) && !isNaN(G) && (W + L) !== G) {\n    row['G'] = String(W + L); // correction\n  }\n\n  const key = `${tid}_${date}`;\n  if (seen.has(key)) continue;\n  seen.add(key);\n\n  rows.push(row);\n}\n\nreturn [{\n  json: {\n    label: 'ranking',\n    rows: rows,\n    count: rows.length,\n    erreurs: erreurs,\n    nb_erreurs: erreurs.length\n  }\n}];"
+      }
+    },
+
+    {
+      "id": "node_merge_validated",
+      "name": "Fusionner données validées",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [800, 460],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition"
+      }
+    },
+
+    {
+      "id": "node_check_validation_errors",
+      "name": "Vérifier erreurs critiques",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1020, 460],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst rapportErreurs = [];\nlet bloquant = false;\n\nfor (const item of items) {\n  const d = item.json;\n  if (!d.label) continue;\n  rapportErreurs.push({\n    fichier: d.label,\n    lignes_valides: d.count,\n    nb_erreurs: d.nb_erreurs\n  });\n  // Bloquer si trop d'erreurs (> 5% des lignes)\n  if (d.nb_erreurs > d.count * 0.05) {\n    bloquant = true;\n  }\n}\n\nif (bloquant) {\n  throw new Error('Trop d erreurs dans les CSV — pipeline bloqué. Vérifier les logs.');\n}\n\nreturn [{ json: { validation_ok: true, rapport: rapportErreurs } }];"
+      }
+    },
+
+    {
+      "id": "node_neo4j_constraints",
+      "name": "Créer Contraintes Neo4j",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1240, 340],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE CONSTRAINT contrainte_saison_id     IF NOT EXISTS FOR (n:Saison)      REQUIRE n.id IS UNIQUE;\nCREATE CONSTRAINT contrainte_equipe_id     IF NOT EXISTS FOR (n:Equipe)      REQUIRE n.id IS UNIQUE;\nCREATE CONSTRAINT contrainte_joueur_id     IF NOT EXISTS FOR (n:Joueur)      REQUIRE n.id IS UNIQUE;\nCREATE CONSTRAINT contrainte_match_id      IF NOT EXISTS FOR (n:Match)       REQUIRE n.id IS UNIQUE;\nCREATE CONSTRAINT contrainte_perf_id       IF NOT EXISTS FOR (n:Performance) REQUIRE n.id IS UNIQUE;\nCREATE CONSTRAINT contrainte_classement_id IF NOT EXISTS FOR (n:Classement)  REQUIRE n.id IS UNIQUE;\nCREATE INDEX idx_match_date     IF NOT EXISTS FOR (n:Match)      ON (n.date_est);\nCREATE INDEX idx_classement_date IF NOT EXISTS FOR (n:Classement) ON (n.date);\nRETURN 'contraintes_ok' AS statut"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_load_saisons",
+      "name": "Charger Saisons",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1240, 460],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UNWIND $rows AS row\nMERGE (s:Saison {id: row.id})\nON CREATE SET s.annee = row.annee, s.created_at = datetime()\nON MATCH  SET s.updated_at = datetime()\nRETURN count(s) AS nb",
+        "additionalFields": {
+          "parameters": "={{ JSON.stringify({ rows: $('Fusionner données validées').first().json.games_rows ? [...new Set($('Fusionner données validées').all().flatMap(i => i.json.rows || []).map(r => r.SEASON).filter(Boolean))].map(s => ({id: String(s), annee: parseInt(s)})) : [] }) }}"
+        }
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_load_equipes",
+      "name": "Charger Équipes",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1240, 580],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UNWIND $rows AS row\nMERGE (e:Equipe {id: row.id})\nON CREATE SET\n  e.team_id      = row.team_id,\n  e.nom          = row.nom,\n  e.ville        = row.ville,\n  e.abbreviation = row.abbreviation,\n  e.conference   = row.conference,\n  e.created_at   = datetime()\nON MATCH SET\n  e.nom          = COALESCE(row.nom, e.nom),\n  e.ville        = COALESCE(row.ville, e.ville),\n  e.conference   = COALESCE(row.conference, e.conference),\n  e.updated_at   = datetime()\nRETURN count(e) AS nb"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_load_joueurs",
+      "name": "Charger Joueurs",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1460, 460],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UNWIND $rows AS row\nMERGE (j:Joueur {id: row.id})\nON CREATE SET\n  j.player_id  = row.player_id,\n  j.nom        = row.nom,\n  j.nickname   = row.nickname,\n  j.created_at = datetime()\nON MATCH SET\n  j.nom        = COALESCE(row.nom, j.nom),\n  j.nickname   = COALESCE(row.nickname, j.nickname),\n  j.updated_at = datetime()\nRETURN count(j) AS nb"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_load_matchs",
+      "name": "Charger Matchs",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1460, 580],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UNWIND $rows AS row\nMERGE (m:Match {id: row.id})\nON CREATE SET\n  m.game_id      = row.game_id,\n  m.date_est     = row.date_est,\n  m.statut       = row.statut,\n  m.saison_id    = row.saison_id,\n  m.score_home   = row.score_home,\n  m.score_away   = row.score_away,\n  m.home_team_id = row.home_team_id,\n  m.away_team_id = row.away_team_id,\n  m.created_at   = datetime()\nON MATCH SET\n  m.statut     = row.statut,\n  m.score_home = COALESCE(row.score_home, m.score_home),\n  m.score_away = COALESCE(row.score_away, m.score_away),\n  m.updated_at = datetime()\nRETURN count(m) AS nb"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_load_performances",
+      "name": "Charger Performances",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1680, 460],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UNWIND $rows AS row\nMERGE (p:Performance {id: row.id})\nON CREATE SET\n  p.joueur_id    = row.joueur_id,\n  p.match_id     = row.match_id,\n  p.equipe_id    = row.equipe_id,\n  p.position     = row.position,\n  p.min_secondes = row.min_secondes,\n  p.fgm = row.fgm, p.fga = row.fga,\n  p.fg3m= row.fg3m,p.fg3a= row.fg3a,\n  p.ftm = row.ftm, p.fta = row.fta,\n  p.oreb= row.oreb,p.dreb= row.dreb,\n  p.reb = row.reb, p.ast = row.ast,\n  p.stl = row.stl, p.blk = row.blk,\n  p.tov = row.tov, p.pf  = row.pf,\n  p.pts = row.pts, p.plus_minus = row.plus_minus,\n  p.created_at   = datetime()\nON MATCH SET p.updated_at = datetime()\nRETURN count(p) AS nb"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_load_classements",
+      "name": "Charger Classements",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1680, 580],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UNWIND $rows AS row\nMERGE (c:Classement {id: row.id})\nON CREATE SET\n  c.team_id      = row.team_id,\n  c.date         = row.date,\n  c.season_id    = row.season_id,\n  c.conference   = row.conference,\n  c.nom_equipe   = row.nom_equipe,\n  c.matchs_joues = row.matchs_joues,\n  c.victoires    = row.victoires,\n  c.defaites     = row.defaites,\n  c.w_pct        = row.w_pct,\n  c.home_record  = row.home_record,\n  c.road_record  = row.road_record,\n  c.created_at   = datetime()\nON MATCH SET c.updated_at = datetime()\nRETURN count(c) AS nb"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_load_relations",
+      "name": "Charger Relations",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1900, 460],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "// Relations Saison→Match\nUNWIND $saison_match AS row\nMATCH (s:Saison {id: row.saison_id})\nMATCH (m:Match  {id: row.match_id})\nMERGE (s)-[:CONTIENT]->(m);\n\n// Relations Equipe→Match (domicile)\nUNWIND $equipe_match_dom AS row\nMATCH (e:Equipe {id: row.equipe_id})\nMATCH (m:Match  {id: row.match_id})\nMERGE (e)-[r:DISPUTE]->(m)\nON CREATE SET r.score = row.score, r.resultat = row.resultat;\n\n// Relations Equipe→Match (visiteur)\nUNWIND $equipe_match_vis AS row\nMATCH (e:Equipe {id: row.equipe_id})\nMATCH (m:Match  {id: row.match_id})\nMERGE (e)-[r:VISITE]->(m)\nON CREATE SET r.score = row.score, r.resultat = row.resultat;\n\nRETURN 'relations_match_ok' AS statut"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_load_relations_joueurs",
+      "name": "Charger Relations Joueurs",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1900, 580],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "// JOUE_POUR (temporelle par saison)\nUNWIND $joue_pour AS row\nMATCH (j:Joueur {id: row.joueur_id})\nMATCH (e:Equipe {id: row.equipe_id})\nMERGE (j)-[r:JOUE_POUR {saison: row.saison}]->(e)\nON CREATE SET r.actif = row.actif, r.created_at = datetime()\nON MATCH  SET r.actif = row.actif;\n\n// REALISE + LORS_DE + POUR_EQUIPE\nUNWIND $performances AS row\nMATCH (j:Joueur      {id: row.joueur_id})\nMATCH (p:Performance {id: row.perf_id})\nMATCH (m:Match       {id: row.match_id})\nMATCH (e:Equipe      {id: row.equipe_id})\nMERGE (j)-[:REALISE]->(p)\nMERGE (p)-[:LORS_DE]->(m)\nMERGE (p)-[:POUR_EQUIPE]->(e);\n\n// A_CLASSEMENT\nUNWIND $classements AS row\nMATCH (e:Equipe     {id: row.equipe_id})\nMATCH (c:Classement {id: row.classement_id})\nMERGE (e)-[:A_CLASSEMENT]->(c);\n\nRETURN 'relations_joueurs_ok' AS statut"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_validate_graph",
+      "name": "Valider Invariants Graphe",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [2120, 520],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "// Invariant 1 : nœuds isolés\nMATCH (p:Performance) WHERE NOT (p)--() WITH count(p) AS perfs_isolees\nMATCH (m:Match)       WHERE NOT (m)--() WITH perfs_isolees, count(m) AS matchs_isoles\n\n// Invariant 2 : FGM ≤ FGA\nMATCH (perf:Performance) WHERE perf.fgm IS NOT NULL AND perf.fga IS NOT NULL AND perf.fgm > perf.fga\nWITH perfs_isolees, matchs_isoles, count(perf) AS fg_invalides\n\n// Invariant 3 : W+L=G\nMATCH (c:Classement) WHERE c.victoires IS NOT NULL AND c.defaites IS NOT NULL AND c.matchs_joues IS NOT NULL AND (c.victoires + c.defaites) <> c.matchs_joues\nWITH perfs_isolees, matchs_isoles, fg_invalides, count(c) AS classements_invalides\n\n// Comptes globaux\nMATCH (j:Joueur)   WITH perfs_isolees, matchs_isoles, fg_invalides, classements_invalides, count(j) AS nb_joueurs\nMATCH (e:Equipe)   WITH perfs_isolees, matchs_isoles, fg_invalides, classements_invalides, nb_joueurs, count(e) AS nb_equipes\nMATCH (m2:Match)   WITH perfs_isolees, matchs_isoles, fg_invalides, classements_invalides, nb_joueurs, nb_equipes, count(m2) AS nb_matchs\nMATCH (p2:Performance) WITH perfs_isolees, matchs_isoles, fg_invalides, classements_invalides, nb_joueurs, nb_equipes, nb_matchs, count(p2) AS nb_perfs\n\nRETURN\n  perfs_isolees, matchs_isoles, fg_invalides, classements_invalides,\n  nb_joueurs, nb_equipes, nb_matchs, nb_perfs,\n  CASE WHEN perfs_isolees = 0 AND matchs_isoles = 0 AND fg_invalides = 0 AND classements_invalides = 0\n       THEN 'SAIN' ELSE 'DÉGRADÉ' END AS statut_graphe"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_check_graph_status",
+      "name": "Vérifier Statut Graphe",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2340, 520],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true },
+          "conditions": [{
+            "id": "cond_statut",
+            "leftValue": "={{ $json.statut_graphe }}",
+            "rightValue": "SAIN",
+            "operator": { "type": "string", "operation": "equals" }
+          }]
+        }
+      }
+    },
+
+    {
+      "id": "node_notify_success",
+      "name": "Notification Succès",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2560, 400],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const d = $input.first().json;\nconst msg = [\n  '✅ NBA Neo4j — Pipeline terminé avec succès',\n  `Joueurs: ${d.nb_joueurs} | Équipes: ${d.nb_equipes} | Matchs: ${d.nb_matchs} | Performances: ${d.nb_perfs}`,\n  `Statut: ${d.statut_graphe}`,\n  `Exécuté: ${new Date().toISOString()}`\n].join('\\n');\nconsole.log(msg);\nreturn [{ json: { message: msg, statut: 'SUCCÈS', timestamp: new Date().toISOString(), ...d } }];"
+      }
+    },
+
+    {
+      "id": "node_notify_failure",
+      "name": "Notification Échec",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2560, 640],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const d = $input.first().json;\nconst problemes = [];\nif (d.perfs_isolees   > 0) problemes.push(`${d.perfs_isolees} performances isolées`);\nif (d.matchs_isoles   > 0) problemes.push(`${d.matchs_isoles} matchs isolés`);\nif (d.fg_invalides    > 0) problemes.push(`${d.fg_invalides} stats FG invalides`);\nif (d.classements_invalides > 0) problemes.push(`${d.classements_invalides} classements incohérents`);\nconst msg = [\n  '❌ NBA Neo4j — Graphe DÉGRADÉ',\n  'Problèmes: ' + problemes.join(', '),\n  'Action: consulter cypher/repair.cypher',\n  `Exécuté: ${new Date().toISOString()}`\n].join('\\n');\nconsole.error(msg);\nreturn [{ json: { message: msg, statut: 'DÉGRADÉ', problemes, timestamp: new Date().toISOString() } }];"
+      }
+    }
+  ],
+
+  "connections": {
+    "Déclencheur Manuel":          { "main": [[{ "node": "Configuration Globale",     "type": "main", "index": 0 }]] },
+    "Déclencheur Quotidien (03h00)":{ "main": [[{ "node": "Configuration Globale",    "type": "main", "index": 0 }]] },
+    "Configuration Globale":       { "main": [[{ "node": "Valider games.csv",         "type": "main", "index": 0 },
+                                               { "node": "Valider games_details.csv", "type": "main", "index": 0 },
+                                               { "node": "Valider players.csv",       "type": "main", "index": 0 },
+                                               { "node": "Valider ranking.csv",       "type": "main", "index": 0 }]] },
+    "Valider games.csv":           { "main": [[{ "node": "Fusionner données validées","type": "main", "index": 0 }]] },
+    "Valider games_details.csv":   { "main": [[{ "node": "Fusionner données validées","type": "main", "index": 1 }]] },
+    "Valider players.csv":         { "main": [[{ "node": "Fusionner données validées","type": "main", "index": 2 }]] },
+    "Valider ranking.csv":         { "main": [[{ "node": "Fusionner données validées","type": "main", "index": 3 }]] },
+    "Fusionner données validées":  { "main": [[{ "node": "Vérifier erreurs critiques","type": "main", "index": 0 }]] },
+    "Vérifier erreurs critiques":  { "main": [[{ "node": "Créer Contraintes Neo4j",  "type": "main", "index": 0 }]] },
+    "Créer Contraintes Neo4j":     { "main": [[{ "node": "Charger Saisons",           "type": "main", "index": 0 },
+                                               { "node": "Charger Équipes",           "type": "main", "index": 0 }]] },
+    "Charger Saisons":             { "main": [[{ "node": "Charger Joueurs",           "type": "main", "index": 0 }]] },
+    "Charger Équipes":             { "main": [[{ "node": "Charger Joueurs",           "type": "main", "index": 0 }]] },
+    "Charger Joueurs":             { "main": [[{ "node": "Charger Matchs",            "type": "main", "index": 0 }]] },
+    "Charger Matchs":              { "main": [[{ "node": "Charger Performances",      "type": "main", "index": 0 },
+                                               { "node": "Charger Classements",       "type": "main", "index": 0 }]] },
+    "Charger Performances":        { "main": [[{ "node": "Charger Relations",         "type": "main", "index": 0 }]] },
+    "Charger Classements":         { "main": [[{ "node": "Charger Relations Joueurs", "type": "main", "index": 0 }]] },
+    "Charger Relations":           { "main": [[{ "node": "Valider Invariants Graphe", "type": "main", "index": 0 }]] },
+    "Charger Relations Joueurs":   { "main": [[{ "node": "Valider Invariants Graphe", "type": "main", "index": 0 }]] },
+    "Valider Invariants Graphe":   { "main": [[{ "node": "Vérifier Statut Graphe",   "type": "main", "index": 0 }]] },
+    "Vérifier Statut Graphe":      { "main": [
+                                       [{ "node": "Notification Succès", "type": "main", "index": 0 }],
+                                       [{ "node": "Notification Échec",  "type": "main", "index": 0 }]
+                                     ]}
+  },
+
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "NBA_Error_Handler"
+  },
+
+  "tags": ["NBA", "Neo4j", "ETL", "Production"]
+}

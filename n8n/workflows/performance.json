@@ -1,0 +1,80 @@
+{
+  "name": "NBA Neo4j — Batch Processor (Performances & Classements)",
+  "nodes": [
+
+    {
+      "id": "trigger_batch",
+      "name": "Déclencheur Batch",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [80, 300],
+      "parameters": {}
+    },
+
+    {
+      "id": "node_split_performances",
+      "name": "Découper Performances en Batches",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Lit games_details.csv et découpe en batches de 500\n// pour éviter les timeouts Neo4j sur 668k lignes\nconst fs = require('fs');\nconst path = require('path');\n\nconst DATA_DIR  = process.env.NBA_DATA_DIR || '/data/nba';\nconst BATCH_SIZE = 500;\n\nconst content = fs.readFileSync(path.join(DATA_DIR, 'games_details.csv'), 'utf8');\nconst lines   = content.trim().split('\\n');\nconst headers = lines[0].split(',').map(h => h.trim().replace(/\"/g,''));\n\nfunction parseMin(s) {\n  if (!s || s === 'nan') return null;\n  const p = s.split(':');\n  if (p.length !== 2) return null;\n  const t = parseInt(p[0]) * 60 + parseInt(p[1]);\n  return (t >= 0 && t <= 3180) ? t : null;\n}\n\nfunction safe(v) {\n  if (v === null || v === undefined || v === '' || v === 'nan' || v === 'NaN') return null;\n  const n = parseFloat(v);\n  return isNaN(n) ? null : n;\n}\n\n// Construire tous les records valides\nconst allRecords = [];\nconst seen = new Set();\n\nfor (let i = 1; i < lines.length; i++) {\n  const vals = lines[i].split(',');\n  if (vals.length < headers.length) continue;\n  const row = {};\n  headers.forEach((h, idx) => {\n    const v = vals[idx] ? vals[idx].trim().replace(/\"/g,'') : null;\n    row[h] = (!v || v === 'nan' || v === 'NaN') ? null : v;\n  });\n\n  const gid = parseInt(row['GAME_ID']);\n  const pid = parseInt(row['PLAYER_ID']);\n  const tid = parseInt(row['TEAM_ID']);\n  if (isNaN(gid) || isNaN(pid) || isNaN(tid)) continue;\n  if (!row['MIN']) continue; // DNP — skip\n\n  const key = `${pid}_${gid}`;\n  if (seen.has(key)) continue;\n  seen.add(key);\n\n  const fgm  = safe(row['FGM']);\n  const fga  = safe(row['FGA']);\n  const fg3m = safe(row['FG3M']);\n  const fg3a = safe(row['FG3A']);\n  const ftm  = safe(row['FTM']);\n  const fta  = safe(row['FTA']);\n  const pts  = safe(row['PTS']);\n\n  // Règles de validation\n  if (fgm !== null && fga !== null && fgm > fga)   continue;\n  if (fg3m!== null && fg3a!== null && fg3m > fg3a) continue;\n  if (fg3a!== null && fga !== null && fg3a > fga)  continue;\n  if (ftm !== null && fta !== null && ftm > fta)   continue;\n  if (fgm !== null && fg3m !== null && ftm !== null && pts !== null) {\n    const calc = (fgm - fg3m) * 2 + fg3m * 3 + ftm;\n    if (Math.abs(calc - pts) > 1) continue;\n  }\n\n  allRecords.push({\n    id:           key,\n    joueur_id:    String(pid),\n    match_id:     String(gid),\n    equipe_id:    String(tid),\n    position:     row['START_POSITION'] || '',\n    min_secondes: parseMin(row['MIN']),\n    fgm, fga, fg3m, fg3a, ftm, fta,\n    oreb:         safe(row['OREB']),\n    dreb:         safe(row['DREB']),\n    reb:          safe(row['REB']),\n    ast:          safe(row['AST']),\n    stl:          safe(row['STL']),\n    blk:          safe(row['BLK']),\n    tov:          safe(row['TO']),\n    pf:           safe(row['PF']),\n    pts,\n    plus_minus:   safe(row['PLUS_MINUS'])\n  });\n}\n\n// Découper en batches\nconst batches = [];\nfor (let i = 0; i < allRecords.length; i += BATCH_SIZE) {\n  batches.push({\n    json: {\n      batch_num:    Math.floor(i / BATCH_SIZE) + 1,\n      total_batches: Math.ceil(allRecords.length / BATCH_SIZE),\n      total_records: allRecords.length,\n      rows:         allRecords.slice(i, i + BATCH_SIZE)\n    }\n  });\n}\n\nreturn batches;"
+      }
+    },
+
+    {
+      "id": "node_insert_perf_batch",
+      "name": "Insérer Batch Performance",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [560, 300],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UNWIND $rows AS row\nMERGE (p:Performance {id: row.id})\nON CREATE SET\n  p.joueur_id    = row.joueur_id,\n  p.match_id     = row.match_id,\n  p.equipe_id    = row.equipe_id,\n  p.position     = row.position,\n  p.min_secondes = row.min_secondes,\n  p.fgm = row.fgm, p.fga = row.fga,\n  p.fg3m= row.fg3m,p.fg3a= row.fg3a,\n  p.ftm = row.ftm, p.fta = row.fta,\n  p.oreb= row.oreb,p.dreb= row.dreb,\n  p.reb = row.reb, p.ast = row.ast,\n  p.stl = row.stl, p.blk = row.blk,\n  p.tov = row.tov, p.pf  = row.pf,\n  p.pts = row.pts, p.plus_minus = row.plus_minus,\n  p.created_at = datetime()\nON MATCH SET p.updated_at = datetime()\nRETURN count(p) AS nb_upserted",
+        "additionalFields": {
+          "parameters": "={{ JSON.stringify({ rows: $json.rows }) }}"
+        }
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_insert_perf_relations",
+      "name": "Créer Relations Performance",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [800, 300],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UNWIND $rows AS row\nMATCH (j:Joueur      {id: row.joueur_id})\nMATCH (p:Performance {id: row.id})\nMATCH (m:Match       {id: row.match_id})\nMATCH (e:Equipe      {id: row.equipe_id})\nMERGE (j)-[:REALISE]->(p)\nMERGE (p)-[:LORS_DE]->(m)\nMERGE (p)-[:POUR_EQUIPE]->(e)\nRETURN count(p) AS nb",
+        "additionalFields": {
+          "parameters": "={{ JSON.stringify({ rows: $json.rows }) }}"
+        }
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_log_progress",
+      "name": "Log Progression",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1040, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst total = items.reduce((s, i) => s + (i.json.nb || 0), 0);\nconsole.log(`Performances insérées dans ce batch : ${total}`);\nreturn items;"
+      }
+    }
+  ],
+
+  "connections": {
+    "Déclencheur Batch":                 { "main": [[{ "node": "Découper Performances en Batches", "type": "main", "index": 0 }]] },
+    "Découper Performances en Batches":  { "main": [[{ "node": "Insérer Batch Performance",        "type": "main", "index": 0 }]] },
+    "Insérer Batch Performance":         { "main": [[{ "node": "Créer Relations Performance",      "type": "main", "index": 0 }]] },
+    "Créer Relations Performance":       { "main": [[{ "node": "Log Progression",                  "type": "main", "index": 0 }]] }
+  },
+
+  "settings": { "executionOrder": "v1" },
+  "tags": ["NBA", "Neo4j", "Batch", "Performances"]
+}

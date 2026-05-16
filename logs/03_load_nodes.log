@@ -1,0 +1,109 @@
+2026-05-15 17:12:03,844 [INFO] ============================================================
+2026-05-15 17:12:03,845 [INFO] ÉTAPE 3 — INGESTION DES NŒUDS
+2026-05-15 17:12:03,845 [INFO] ============================================================
+2026-05-15 17:12:03,845 [INFO] Chargement des données nettoyées...
+2026-05-15 17:12:04,160 [INFO]   Données nettoyées chargées depuis parquet
+2026-05-15 17:12:04,330 [INFO] --- Nœuds Saison ---
+2026-05-15 17:12:06,813 [INFO]   Saison: 1/1 batches (100%)
+2026-05-15 17:12:06,826 [INFO]   Avant:0 | Après:20 | Créés:20 | Total saisons:20
+2026-05-15 17:12:06,826 [INFO] --- Nœuds Equipe ---
+2026-05-15 17:12:10,461 [INFO]   Equipe: 1/1 batches (100%)
+2026-05-15 17:12:10,470 [INFO]   Avant:0 | Après:30 | Créés:30 | Total équipes:30
+2026-05-15 17:12:10,470 [INFO] --- Nœuds Joueur ---
+2026-05-15 17:12:14,302 [INFO]   Joueur: 6/6 batches (100%)
+2026-05-15 17:12:14,314 [INFO]   Avant:0 | Après:2687 | Créés:2687 | Total joueurs:2687
+2026-05-15 17:12:14,315 [INFO] --- Nœuds Match ---
+2026-05-15 17:12:22,943 [INFO]   Match: 10/54 batches (19%)
+2026-05-15 17:12:25,175 [INFO]   Match: 20/54 batches (37%)
+2026-05-15 17:12:26,844 [INFO]   Match: 30/54 batches (56%)
+2026-05-15 17:12:28,386 [INFO]   Match: 40/54 batches (74%)
+2026-05-15 17:12:29,703 [INFO]   Match: 50/54 batches (93%)
+2026-05-15 17:12:30,276 [INFO]   Match: 54/54 batches (100%)
+2026-05-15 17:12:30,308 [INFO]   Avant:0 | Après:26622 | Créés:26622 | Total matchs:26622
+2026-05-15 17:12:30,316 [INFO] --- Nœuds Performance (joueurs ayant joué) ---
+2026-05-15 17:12:34,252 [INFO]   Lignes avec MIN valide : 558667
+2026-05-15 17:14:20,176 [INFO]   Performance: 10/559 batches (2%)
+2026-05-15 17:14:23,391 [INFO]   Performance: 20/559 batches (4%)
+2026-05-15 17:14:26,245 [INFO]   Performance: 30/559 batches (5%)
+2026-05-15 17:14:29,222 [INFO]   Performance: 40/559 batches (7%)
+2026-05-15 17:14:32,170 [INFO]   Performance: 50/559 batches (9%)
+2026-05-15 17:14:34,841 [INFO]   Performance: 60/559 batches (11%)
+2026-05-15 17:14:37,920 [INFO]   Performance: 70/559 batches (13%)
+2026-05-15 17:14:41,333 [INFO]   Performance: 80/559 batches (14%)
+2026-05-15 17:14:44,682 [INFO]   Performance: 90/559 batches (16%)
+2026-05-15 17:14:47,259 [INFO]   Performance: 100/559 batches (18%)
+2026-05-15 17:14:50,001 [INFO]   Performance: 110/559 batches (20%)
+2026-05-15 17:14:52,897 [INFO]   Performance: 120/559 batches (21%)
+2026-05-15 17:14:56,004 [INFO]   Performance: 130/559 batches (23%)
+2026-05-15 17:14:59,672 [INFO]   Performance: 140/559 batches (25%)
+2026-05-15 17:15:02,295 [INFO]   Performance: 150/559 batches (27%)
+2026-05-15 17:15:05,081 [INFO]   Performance: 160/559 batches (29%)
+2026-05-15 17:15:07,993 [INFO]   Performance: 170/559 batches (30%)
+2026-05-15 17:15:11,052 [INFO]   Performance: 180/559 batches (32%)
+2026-05-15 17:15:13,749 [INFO]   Performance: 190/559 batches (34%)
+2026-05-15 17:15:16,611 [INFO]   Performance: 200/559 batches (36%)
+2026-05-15 17:15:19,511 [INFO]   Performance: 210/559 batches (38%)
+2026-05-15 17:15:32,351 [INFO]   Performance: 220/559 batches (39%)
+2026-05-15 17:15:35,529 [INFO]   Performance: 230/559 batches (41%)
+2026-05-15 17:15:38,733 [INFO]   Performance: 240/559 batches (43%)
+2026-05-15 17:15:41,669 [INFO]   Performance: 250/559 batches (45%)
+2026-05-15 17:15:44,919 [INFO]   Performance: 260/559 batches (47%)
+2026-05-15 17:15:48,356 [INFO]   Performance: 270/559 batches (48%)
+2026-05-15 17:15:52,413 [INFO]   Performance: 280/559 batches (50%)
+2026-05-15 17:15:56,270 [INFO]   Performance: 290/559 batches (52%)
+2026-05-15 17:16:00,118 [INFO]   Performance: 300/559 batches (54%)
+2026-05-15 17:16:03,831 [INFO]   Performance: 310/559 batches (55%)
+2026-05-15 17:16:06,993 [INFO]   Performance: 320/559 batches (57%)
+2026-05-15 17:16:09,688 [INFO]   Performance: 330/559 batches (59%)
+2026-05-15 17:16:12,820 [INFO]   Performance: 340/559 batches (61%)
+2026-05-15 17:16:20,002 [INFO]   Performance: 350/559 batches (63%)
+2026-05-15 17:16:23,805 [INFO]   Performance: 360/559 batches (64%)
+2026-05-15 17:16:27,144 [INFO]   Performance: 370/559 batches (66%)
+2026-05-15 17:16:30,517 [INFO]   Performance: 380/559 batches (68%)
+2026-05-15 17:16:33,992 [INFO]   Performance: 390/559 batches (70%)
+2026-05-15 17:16:37,952 [INFO]   Performance: 400/559 batches (72%)
+2026-05-15 17:16:41,331 [INFO]   Performance: 410/559 batches (73%)
+2026-05-15 17:16:44,923 [INFO]   Performance: 420/559 batches (75%)
+2026-05-15 17:16:48,011 [INFO]   Performance: 430/559 batches (77%)
+2026-05-15 17:16:51,235 [INFO]   Performance: 440/559 batches (79%)
+2026-05-15 17:16:55,154 [INFO]   Performance: 450/559 batches (81%)
+2026-05-15 17:16:59,161 [INFO]   Performance: 460/559 batches (82%)
+2026-05-15 17:17:02,888 [INFO]   Performance: 470/559 batches (84%)
+2026-05-15 17:17:06,255 [INFO]   Performance: 480/559 batches (86%)
+2026-05-15 17:17:09,429 [INFO]   Performance: 490/559 batches (88%)
+2026-05-15 17:17:12,750 [INFO]   Performance: 500/559 batches (89%)
+2026-05-15 17:17:16,703 [INFO]   Performance: 510/559 batches (91%)
+2026-05-15 17:17:20,151 [INFO]   Performance: 520/559 batches (93%)
+2026-05-15 17:17:23,655 [INFO]   Performance: 530/559 batches (95%)
+2026-05-15 17:17:27,150 [INFO]   Performance: 540/559 batches (97%)
+2026-05-15 17:17:30,516 [INFO]   Performance: 550/559 batches (98%)
+2026-05-15 17:17:33,646 [INFO]   Performance: 559/559 batches (100%)
+2026-05-15 17:17:33,788 [INFO]   Avant:0 | Après:558667 | Créés:558667 | Total perfs:558667
+2026-05-15 17:17:37,262 [INFO] --- Nœuds Classement ---
+2026-05-15 17:18:02,871 [INFO]   Classement: 10/211 batches (5%)
+2026-05-15 17:18:04,896 [INFO]   Classement: 20/211 batches (9%)
+2026-05-15 17:18:06,834 [INFO]   Classement: 30/211 batches (14%)
+2026-05-15 17:18:08,812 [INFO]   Classement: 40/211 batches (19%)
+2026-05-15 17:18:10,725 [INFO]   Classement: 50/211 batches (24%)
+2026-05-15 17:18:13,271 [INFO]   Classement: 60/211 batches (28%)
+2026-05-15 17:18:15,160 [INFO]   Classement: 70/211 batches (33%)
+2026-05-15 17:18:17,151 [INFO]   Classement: 80/211 batches (38%)
+2026-05-15 17:18:19,150 [INFO]   Classement: 90/211 batches (43%)
+2026-05-15 17:18:21,062 [INFO]   Classement: 100/211 batches (47%)
+2026-05-15 17:18:23,051 [INFO]   Classement: 110/211 batches (52%)
+2026-05-15 17:18:25,207 [INFO]   Classement: 120/211 batches (57%)
+2026-05-15 17:18:27,222 [INFO]   Classement: 130/211 batches (62%)
+2026-05-15 17:18:29,253 [INFO]   Classement: 140/211 batches (66%)
+2026-05-15 17:18:31,447 [INFO]   Classement: 150/211 batches (71%)
+2026-05-15 17:18:33,322 [INFO]   Classement: 160/211 batches (76%)
+2026-05-15 17:18:35,469 [INFO]   Classement: 170/211 batches (81%)
+2026-05-15 17:18:37,536 [INFO]   Classement: 180/211 batches (85%)
+2026-05-15 17:18:39,435 [INFO]   Classement: 190/211 batches (90%)
+2026-05-15 17:18:41,424 [INFO]   Classement: 200/211 batches (95%)
+2026-05-15 17:18:43,300 [INFO]   Classement: 210/211 batches (100%)
+2026-05-15 17:18:43,394 [INFO]   Classement: 211/211 batches (100%)
+2026-05-15 17:18:43,580 [INFO]   Avant:0 | Après:210313 | Créés:210313 | Total classements:210313
+2026-05-15 17:18:43,744 [INFO] ============================================================
+2026-05-15 17:18:43,746 [INFO] ÉTAPE 3 TERMINÉE en 400s (6.7 min)
+2026-05-15 17:18:43,746 [INFO] Prochaine étape : python charger_relation.py
+2026-05-15 17:18:43,746 [INFO] ============================================================

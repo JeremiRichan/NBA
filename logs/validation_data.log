@@ -1,0 +1,34 @@
+2026-05-15 17:11:44,294 [INFO] ============================================================
+2026-05-15 17:11:44,294 [INFO] ÉTAPE 1 — VALIDATION ET NETTOYAGE DES DONNÉES
+2026-05-15 17:11:44,294 [INFO] ============================================================
+2026-05-15 17:11:44,294 [INFO] Chargement des CSV bruts...
+2026-05-15 17:11:49,751 [INFO] Chargement terminé
+2026-05-15 17:11:49,796 [INFO] === Validation games.csv ===
+2026-05-15 17:11:49,826 [WARNING]   58 lignes avec GAME_ID en doublon — conserve le premier
+2026-05-15 17:11:49,868 [INFO]   Lignes initiales : 26651
+2026-05-15 17:11:49,868 [INFO]   Lignes rejetées  : 29
+2026-05-15 17:11:49,869 [INFO]   Lignes valides   : 26622
+2026-05-15 17:11:49,869 [INFO] === Validation games_details.csv (668k lignes — patience) ===
+2026-05-15 17:11:51,116 [WARNING]   578 doublons (GAME_ID+PLAYER_ID) — garde le premier
+2026-05-15 17:11:52,459 [WARNING]   3 incohérences points/tirs (tolérance 1) — rejetées
+2026-05-15 17:11:54,780 [INFO]   Lignes initiales : 668628
+2026-05-15 17:11:54,780 [INFO]   Lignes rejetées  : 292
+2026-05-15 17:11:54,780 [INFO]   Lignes valides   : 668336
+2026-05-15 17:11:54,783 [INFO]   Dont DNP (sans MIN): 109669
+2026-05-15 17:11:54,784 [INFO]   Dont ont joué     : 558667
+2026-05-15 17:11:54,831 [INFO] === Validation players.csv ===
+2026-05-15 17:11:54,837 [INFO]   Lignes initiales : 7228
+2026-05-15 17:11:54,837 [INFO]   Lignes rejetées  : 0
+2026-05-15 17:11:54,837 [INFO]   Lignes valides   : 7228
+2026-05-15 17:11:54,838 [INFO] === Validation ranking.csv ===
+2026-05-15 17:11:55,021 [WARNING]   58 doublons (TEAM_ID+DATE) — garde premier
+2026-05-15 17:11:55,113 [INFO]   Lignes initiales : 210342
+2026-05-15 17:11:55,113 [INFO]   Lignes rejetées  : 29
+2026-05-15 17:11:55,113 [INFO]   Lignes valides   : 210313
+2026-05-15 17:11:55,114 [INFO] === Validation croisée entre fichiers ===
+2026-05-15 17:11:55,139 [INFO]   Validation croisée terminée
+2026-05-15 17:11:56,494 [INFO] ============================================================
+2026-05-15 17:11:56,494 [INFO] ÉTAPE 1 TERMINÉE en 12.2s
+2026-05-15 17:11:56,494 [INFO] Données nettoyées sauvegardées dans logs/*.parquet
+2026-05-15 17:11:56,494 [INFO] Prochaine étape : python config_contraint.py
+2026-05-15 17:11:56,494 [INFO] ============================================================

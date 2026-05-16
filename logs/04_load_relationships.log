@@ -1,0 +1,144 @@
+2026-05-15 17:18:46,414 [INFO] ============================================================
+2026-05-15 17:18:46,414 [INFO] ÉTAPE 4 — INGESTION DES RELATIONS
+2026-05-15 17:18:46,414 [INFO] ============================================================
+2026-05-15 17:18:46,414 [INFO] Chargement des données nettoyées...
+2026-05-15 17:18:47,204 [INFO] --- Relation CONTIENT (Saison→Match) ---
+2026-05-15 17:18:47,863 [WARNING] Received notification from DBMS server: <GqlStatusObject gql_status='01N51', status_description='warn: relationship type does not exist. The relationship type `CONTIENT` does not exist in database `neo4j`. Verify that the spelling is correct.', position=<SummaryInputPosition line=1, column=13, offset=12>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 12, 'line': 1, 'column': 13}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'MATCH ()-[r:CONTIENT]->() RETURN count(r) AS c'
+2026-05-15 17:18:57,359 [INFO]   CONTIENT: 20/54 batches (37%)
+2026-05-15 17:19:00,059 [INFO]   CONTIENT: 40/54 batches (74%)
+2026-05-15 17:19:01,666 [INFO]   CONTIENT: 54/54 batches (100%)
+2026-05-15 17:19:01,794 [INFO]   Avant:0 | Après:26622 | Créées:26622
+2026-05-15 17:19:01,797 [INFO] --- Relations DISPUTE/VISITE (Equipe→Match) ---
+2026-05-15 17:19:01,949 [WARNING] Received notification from DBMS server: <GqlStatusObject gql_status='01N51', status_description='warn: relationship type does not exist. The relationship type `DISPUTE` does not exist in database `neo4j`. Verify that the spelling is correct.', position=<SummaryInputPosition line=1, column=13, offset=12>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 12, 'line': 1, 'column': 13}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'MATCH ()-[r:DISPUTE]->() RETURN count(r) AS c'
+2026-05-15 17:19:03,787 [WARNING] Received notification from DBMS server: <GqlStatusObject gql_status='01N51', status_description='warn: relationship type does not exist. The relationship type `VISITE` does not exist in database `neo4j`. Verify that the spelling is correct.', position=<SummaryInputPosition line=1, column=13, offset=12>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 12, 'line': 1, 'column': 13}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'MATCH ()-[r:VISITE]->() RETURN count(r) AS c'
+2026-05-15 17:19:10,217 [INFO]   DISPUTE: 20/54 batches (37%)
+2026-05-15 17:19:12,237 [INFO]   DISPUTE: 40/54 batches (74%)
+2026-05-15 17:19:13,722 [INFO]   DISPUTE: 54/54 batches (100%)
+2026-05-15 17:19:16,174 [INFO]   VISITE: 20/54 batches (37%)
+2026-05-15 17:19:18,239 [INFO]   VISITE: 40/54 batches (74%)
+2026-05-15 17:19:19,776 [INFO]   VISITE: 54/54 batches (100%)
+2026-05-15 17:19:19,809 [INFO]   DISPUTE  — Avant:0 | Après:26622 | Créées:26622
+2026-05-15 17:19:19,833 [INFO]   VISITE   — Avant:0 | Après:26622  | Créées:26622
+2026-05-15 17:19:19,847 [INFO] --- Relation JOUE_POUR (Joueur→Equipe, temporelle) ---
+2026-05-15 17:19:19,899 [WARNING] Received notification from DBMS server: <GqlStatusObject gql_status='01N51', status_description='warn: relationship type does not exist. The relationship type `JOUE_POUR` does not exist in database `neo4j`. Verify that the spelling is correct.', position=<SummaryInputPosition line=1, column=13, offset=12>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 12, 'line': 1, 'column': 13}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'MATCH ()-[r:JOUE_POUR]->() RETURN count(r) AS c'
+2026-05-15 17:19:23,394 [INFO]   JOUE_POUR: 15/15 batches (100%)
+2026-05-15 17:19:23,422 [INFO]   Avant:0 | Après:7228 | Créées:7228
+2026-05-15 17:19:23,424 [INFO] --- Relations REALISE / LORS_DE / POUR_EQUIPE ---
+2026-05-15 17:19:23,475 [WARNING] Received notification from DBMS server: <GqlStatusObject gql_status='01N51', status_description='warn: relationship type does not exist. The relationship type `REALISE` does not exist in database `neo4j`. Verify that the spelling is correct.', position=<SummaryInputPosition line=1, column=13, offset=12>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 12, 'line': 1, 'column': 13}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'MATCH ()-[r:REALISE]->() RETURN count(r) AS c'
+2026-05-15 17:19:23,520 [WARNING] Received notification from DBMS server: <GqlStatusObject gql_status='01N51', status_description='warn: relationship type does not exist. The relationship type `LORS_DE` does not exist in database `neo4j`. Verify that the spelling is correct.', position=<SummaryInputPosition line=1, column=13, offset=12>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 12, 'line': 1, 'column': 13}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'MATCH ()-[r:LORS_DE]->() RETURN count(r) AS c'
+2026-05-15 17:19:23,565 [WARNING] Received notification from DBMS server: <GqlStatusObject gql_status='01N51', status_description='warn: relationship type does not exist. The relationship type `POUR_EQUIPE` does not exist in database `neo4j`. Verify that the spelling is correct.', position=<SummaryInputPosition line=1, column=13, offset=12>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 12, 'line': 1, 'column': 13}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'MATCH ()-[r:POUR_EQUIPE]->() RETURN count(r) AS c'
+2026-05-15 17:20:24,490 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 20/1863 batches (1%)
+2026-05-15 17:20:28,131 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 40/1863 batches (2%)
+2026-05-15 17:20:32,583 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 60/1863 batches (3%)
+2026-05-15 17:20:36,629 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 80/1863 batches (4%)
+2026-05-15 17:20:39,966 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 100/1863 batches (5%)
+2026-05-15 17:20:45,181 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 120/1863 batches (6%)
+2026-05-15 17:20:49,895 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 140/1863 batches (8%)
+2026-05-15 17:20:53,860 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 160/1863 batches (9%)
+2026-05-15 17:20:57,890 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 180/1863 batches (10%)
+2026-05-15 17:21:02,208 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 200/1863 batches (11%)
+2026-05-15 17:21:05,371 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 220/1863 batches (12%)
+2026-05-15 17:21:06,996 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 240/1863 batches (13%)
+2026-05-15 17:21:09,601 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 260/1863 batches (14%)
+2026-05-15 17:21:13,081 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 280/1863 batches (15%)
+2026-05-15 17:21:15,603 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 300/1863 batches (16%)
+2026-05-15 17:21:19,615 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 320/1863 batches (17%)
+2026-05-15 17:21:21,934 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 340/1863 batches (18%)
+2026-05-15 17:21:26,631 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 360/1863 batches (19%)
+2026-05-15 17:21:30,971 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 380/1863 batches (20%)
+2026-05-15 17:21:36,151 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 400/1863 batches (21%)
+2026-05-15 17:21:39,402 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 420/1863 batches (23%)
+2026-05-15 17:21:43,543 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 440/1863 batches (24%)
+2026-05-15 17:21:47,851 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 460/1863 batches (25%)
+2026-05-15 17:21:51,380 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 480/1863 batches (26%)
+2026-05-15 17:21:54,418 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 500/1863 batches (27%)
+2026-05-15 17:21:58,336 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 520/1863 batches (28%)
+2026-05-15 17:22:02,731 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 540/1863 batches (29%)
+2026-05-15 17:22:06,228 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 560/1863 batches (30%)
+2026-05-15 17:22:11,880 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 580/1863 batches (31%)
+2026-05-15 17:22:17,258 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 600/1863 batches (32%)
+2026-05-15 17:22:21,878 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 620/1863 batches (33%)
+2026-05-15 17:22:25,799 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 640/1863 batches (34%)
+2026-05-15 17:22:29,777 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 660/1863 batches (35%)
+2026-05-15 17:22:34,291 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 680/1863 batches (37%)
+2026-05-15 17:22:37,746 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 700/1863 batches (38%)
+2026-05-15 17:22:41,649 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 720/1863 batches (39%)
+2026-05-15 17:22:45,343 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 740/1863 batches (40%)
+2026-05-15 17:22:49,878 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 760/1863 batches (41%)
+2026-05-15 17:22:53,484 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 780/1863 batches (42%)
+2026-05-15 17:22:56,429 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 800/1863 batches (43%)
+2026-05-15 17:22:59,651 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 820/1863 batches (44%)
+2026-05-15 17:23:03,696 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 840/1863 batches (45%)
+2026-05-15 17:23:06,824 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 860/1863 batches (46%)
+2026-05-15 17:23:11,054 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 880/1863 batches (47%)
+2026-05-15 17:23:15,312 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 900/1863 batches (48%)
+2026-05-15 17:23:18,920 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 920/1863 batches (49%)
+2026-05-15 17:23:20,602 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 940/1863 batches (50%)
+2026-05-15 17:23:23,514 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 960/1863 batches (52%)
+2026-05-15 17:23:28,128 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 980/1863 batches (53%)
+2026-05-15 17:23:30,948 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1000/1863 batches (54%)
+2026-05-15 17:23:34,828 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1020/1863 batches (55%)
+2026-05-15 17:23:37,894 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1040/1863 batches (56%)
+2026-05-15 17:23:40,651 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1060/1863 batches (57%)
+2026-05-15 17:23:43,331 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1080/1863 batches (58%)
+2026-05-15 17:23:46,329 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1100/1863 batches (59%)
+2026-05-15 17:23:50,371 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1120/1863 batches (60%)
+2026-05-15 17:23:52,824 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1140/1863 batches (61%)
+2026-05-15 17:23:55,988 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1160/1863 batches (62%)
+2026-05-15 17:23:59,886 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1180/1863 batches (63%)
+2026-05-15 17:24:04,127 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1200/1863 batches (64%)
+2026-05-15 17:24:06,749 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1220/1863 batches (65%)
+2026-05-15 17:24:10,020 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1240/1863 batches (67%)
+2026-05-15 17:24:12,097 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1260/1863 batches (68%)
+2026-05-15 17:24:14,180 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1280/1863 batches (69%)
+2026-05-15 17:24:17,200 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1300/1863 batches (70%)
+2026-05-15 17:24:21,007 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1320/1863 batches (71%)
+2026-05-15 17:24:24,760 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1340/1863 batches (72%)
+2026-05-15 17:24:27,791 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1360/1863 batches (73%)
+2026-05-15 17:24:31,075 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1380/1863 batches (74%)
+2026-05-15 17:24:34,860 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1400/1863 batches (75%)
+2026-05-15 17:24:38,289 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1420/1863 batches (76%)
+2026-05-15 17:24:42,471 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1440/1863 batches (77%)
+2026-05-15 17:24:45,870 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1460/1863 batches (78%)
+2026-05-15 17:24:48,888 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1480/1863 batches (79%)
+2026-05-15 17:24:51,268 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1500/1863 batches (81%)
+2026-05-15 17:24:54,993 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1520/1863 batches (82%)
+2026-05-15 17:24:56,927 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1540/1863 batches (83%)
+2026-05-15 17:25:01,021 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1560/1863 batches (84%)
+2026-05-15 17:25:04,870 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1580/1863 batches (85%)
+2026-05-15 17:25:08,274 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1600/1863 batches (86%)
+2026-05-15 17:25:13,130 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1620/1863 batches (87%)
+2026-05-15 17:25:17,625 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1640/1863 batches (88%)
+2026-05-15 17:25:21,268 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1660/1863 batches (89%)
+2026-05-15 17:25:23,366 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1680/1863 batches (90%)
+2026-05-15 17:25:25,544 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1700/1863 batches (91%)
+2026-05-15 17:25:27,500 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1720/1863 batches (92%)
+2026-05-15 17:25:29,003 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1740/1863 batches (93%)
+2026-05-15 17:25:30,941 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1760/1863 batches (94%)
+2026-05-15 17:25:34,935 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1780/1863 batches (96%)
+2026-05-15 17:25:39,511 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1800/1863 batches (97%)
+2026-05-15 17:25:44,282 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1820/1863 batches (98%)
+2026-05-15 17:25:47,787 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1840/1863 batches (99%)
+2026-05-15 17:25:51,560 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1860/1863 batches (100%)
+2026-05-15 17:25:52,369 [INFO]   REALISE+LORS_DE+POUR_EQUIPE: 1863/1863 batches (100%)
+2026-05-15 17:25:52,399 [INFO]   REALISE    — Avant:0 | Après:558667
+2026-05-15 17:25:52,470 [INFO]   LORS_DE    — Avant:0 | Après:558667
+2026-05-15 17:25:52,496 [INFO]   POUR_EQUIPE— Avant:0 | Après:558667
+2026-05-15 17:25:52,758 [INFO] --- Relation A_CLASSEMENT (Equipe→Classement) ---
+2026-05-15 17:25:52,810 [WARNING] Received notification from DBMS server: <GqlStatusObject gql_status='01N51', status_description='warn: relationship type does not exist. The relationship type `A_CLASSEMENT` does not exist in database `neo4j`. Verify that the spelling is correct.', position=<SummaryInputPosition line=1, column=13, offset=12>, raw_classification='UNRECOGNIZED', classification=<NotificationClassification.UNRECOGNIZED: 'UNRECOGNIZED'>, raw_severity='WARNING', severity=<NotificationSeverity.WARNING: 'WARNING'>, diagnostic_record={'_classification': 'UNRECOGNIZED', '_severity': 'WARNING', '_position': {'offset': 12, 'line': 1, 'column': 13}, 'OPERATION': '', 'OPERATION_CODE': '0', 'CURRENT_SCHEMA': '/'}> for query: 'MATCH ()-[r:A_CLASSEMENT]->() RETURN count(r) AS c'
+2026-05-15 17:26:15,168 [INFO]   A_CLASSEMENT: 20/211 batches (9%)
+2026-05-15 17:26:18,504 [INFO]   A_CLASSEMENT: 40/211 batches (19%)
+2026-05-15 17:26:21,837 [INFO]   A_CLASSEMENT: 60/211 batches (28%)
+2026-05-15 17:26:25,274 [INFO]   A_CLASSEMENT: 80/211 batches (38%)
+2026-05-15 17:26:28,439 [INFO]   A_CLASSEMENT: 100/211 batches (47%)
+2026-05-15 17:26:31,965 [INFO]   A_CLASSEMENT: 120/211 batches (57%)
+2026-05-15 17:26:35,327 [INFO]   A_CLASSEMENT: 140/211 batches (66%)
+2026-05-15 17:26:38,821 [INFO]   A_CLASSEMENT: 160/211 batches (76%)
+2026-05-15 17:26:42,400 [INFO]   A_CLASSEMENT: 180/211 batches (85%)
+2026-05-15 17:26:44,392 [INFO]   A_CLASSEMENT: 200/211 batches (95%)
+2026-05-15 17:26:45,501 [INFO]   A_CLASSEMENT: 211/211 batches (100%)
+2026-05-15 17:26:45,528 [INFO]   Avant:0 | Après:210313 | Créées:210313
+2026-05-15 17:26:45,586 [INFO] ============================================================
+2026-05-15 17:26:45,586 [INFO] ÉTAPE 4 TERMINÉE en 479s (8.0 min)
+2026-05-15 17:26:45,586 [INFO] Prochaine étape : python valider_graphe.py
+2026-05-15 17:26:45,586 [INFO] ============================================================

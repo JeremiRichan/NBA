@@ -1,0 +1,174 @@
+{
+  "name": "NBA Neo4j — Monitoring & Validation Quotidienne",
+  "nodes": [
+
+    {
+      "id": "trigger_monitor",
+      "name": "Cron Monitoring (06h00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [80, 300],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 6 * * *" }]
+        }
+      }
+    },
+
+    {
+      "id": "node_invariant_1",
+      "name": "Invariant 1 — Nœuds Isolés",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [300, 180],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "MATCH (p:Performance) WHERE NOT (p)--() WITH count(p) AS perfs_iso\nMATCH (m:Match)       WHERE NOT (m)--() WITH perfs_iso, count(m) AS matchs_iso\nMATCH (j:Joueur)      WHERE NOT (j)--() WITH perfs_iso, matchs_iso, count(j) AS joueurs_iso\nRETURN perfs_iso, matchs_iso, joueurs_iso,\n       (perfs_iso + matchs_iso + joueurs_iso) AS total_iso,\n       CASE WHEN (perfs_iso + matchs_iso + joueurs_iso) = 0 THEN 'OK' ELSE 'ECHEC' END AS statut"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_invariant_2",
+      "name": "Invariant 2 — Complétude Matchs",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [300, 320],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "MATCH (m:Match)\nWHERE m.score_home IS NOT NULL\nOPTIONAL MATCH (dom:Equipe)-[:DISPUTE]->(m)\nOPTIONAL MATCH (vis:Equipe)-[:VISITE]->(m)\nOPTIONAL MATCH (:Saison)-[:CONTIENT]->(m)\nWITH m,\n     count(DISTINCT dom) AS nb_dom,\n     count(DISTINCT vis) AS nb_vis\nWHERE nb_dom <> 1 OR nb_vis <> 1\nRETURN count(m) AS matchs_incomplets,\n       CASE WHEN count(m) = 0 THEN 'OK' ELSE 'ECHEC' END AS statut"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_invariant_3",
+      "name": "Invariant 3 — Stats Cohérentes",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [300, 460],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "MATCH (p:Performance)\nWHERE (p.fgm IS NOT NULL AND p.fga IS NOT NULL AND p.fgm > p.fga)\n   OR (p.fg3m IS NOT NULL AND p.fg3a IS NOT NULL AND p.fg3m > p.fg3a)\n   OR (p.ftm IS NOT NULL AND p.fta IS NOT NULL AND p.ftm > p.fta)\nRETURN count(p) AS stats_invalides,\n       CASE WHEN count(p) = 0 THEN 'OK' ELSE 'ECHEC' END AS statut"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_invariant_4",
+      "name": "Invariant 4 — Contrats Actifs",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [300, 600],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "MATCH (j:Joueur)-[r:JOUE_POUR {actif: true}]->(e:Equipe)\nWITH j, count(r) AS nb\nWHERE nb > 1\nRETURN count(j) AS joueurs_conflits,\n       CASE WHEN count(j) = 0 THEN 'OK' ELSE 'ECHEC' END AS statut"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_volume_rapport",
+      "name": "Rapport de Volume",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [300, 740],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "MATCH (j:Joueur)      WITH count(j) AS nb_joueurs\nMATCH (e:Equipe)      WITH nb_joueurs, count(e) AS nb_equipes\nMATCH (m:Match)       WITH nb_joueurs, nb_equipes, count(m) AS nb_matchs\nMATCH (p:Performance) WITH nb_joueurs, nb_equipes, nb_matchs, count(p) AS nb_perfs\nMATCH (c:Classement)  WITH nb_joueurs, nb_equipes, nb_matchs, nb_perfs, count(c) AS nb_class\nMATCH ()-[r]->()      WITH nb_joueurs, nb_equipes, nb_matchs, nb_perfs, nb_class, count(r) AS nb_rels\nRETURN nb_joueurs, nb_equipes, nb_matchs, nb_perfs, nb_class, nb_rels"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_merge_invariants",
+      "name": "Fusionner Résultats Invariants",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [560, 460],
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition"
+      }
+    },
+
+    {
+      "id": "node_build_rapport",
+      "name": "Construire Rapport Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 460],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst now   = new Date().toISOString();\n\n// Extraire les résultats de chaque invariant\nconst inv1 = items[0]?.json || {};\nconst inv2 = items[1]?.json || {};\nconst inv3 = items[2]?.json || {};\nconst inv4 = items[3]?.json || {};\nconst vol  = items[4]?.json || {};\n\nconst echecs = [\n  inv1.statut === 'ECHEC' ? `Nœuds isolés: ${inv1.total_iso}` : null,\n  inv2.statut === 'ECHEC' ? `Matchs incomplets: ${inv2.matchs_incomplets}` : null,\n  inv3.statut === 'ECHEC' ? `Stats invalides: ${inv3.stats_invalides}` : null,\n  inv4.statut === 'ECHEC' ? `Contrats conflits: ${inv4.joueurs_conflits}` : null,\n].filter(Boolean);\n\nconst statut_global = echecs.length === 0 ? 'SAIN' : 'DÉGRADÉ';\n\nconst rapport = {\n  timestamp:      now,\n  statut_global,\n  echecs,\n  invariants: {\n    noeuds_isoles:    { statut: inv1.statut, details: inv1 },\n    matchs_incomplets:{ statut: inv2.statut, details: inv2 },\n    stats_invalides:  { statut: inv3.statut, details: inv3 },\n    contrats_actifs:  { statut: inv4.statut, details: inv4 },\n  },\n  volumes: {\n    joueurs:      vol.nb_joueurs,\n    equipes:      vol.nb_equipes,\n    matchs:       vol.nb_matchs,\n    performances: vol.nb_perfs,\n    classements:  vol.nb_class,\n    relations:    vol.nb_rels,\n  }\n};\n\n// Afficher dans les logs n8n\nconsole.log('=== RAPPORT MONITORING NBA NEO4J ===');\nconsole.log(JSON.stringify(rapport, null, 2));\n\nreturn [{ json: rapport }];"
+      }
+    },
+
+    {
+      "id": "node_if_degrade",
+      "name": "Graphe Dégradé ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1040, 460],
+      "parameters": {
+        "conditions": {
+          "conditions": [{
+            "leftValue":  "={{ $json.statut_global }}",
+            "rightValue": "DÉGRADÉ",
+            "operator":   { "type": "string", "operation": "equals" }
+          }]
+        }
+      }
+    },
+
+    {
+      "id": "node_auto_repair",
+      "name": "Réparation Automatique",
+      "type": "n8n-nodes-base.neo4j",
+      "typeVersion": 1,
+      "position": [1280, 360],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "// Réparer les relations LORS_DE manquantes\nMATCH (p:Performance)\nWHERE NOT (p)-[:LORS_DE]->(:Match) AND p.match_id IS NOT NULL\nMATCH (m:Match {id: p.match_id})\nMERGE (p)-[:LORS_DE]->(m)\nWITH count(*) AS rep_lors_de\n\n// Réparer les relations REALISE manquantes\nMATCH (p:Performance)\nWHERE NOT (:Joueur)-[:REALISE]->(p) AND p.joueur_id IS NOT NULL\nMATCH (j:Joueur {id: p.joueur_id})\nMERGE (j)-[:REALISE]->(p)\nWITH rep_lors_de, count(*) AS rep_realise\n\n// Réparer les relations POUR_EQUIPE manquantes\nMATCH (p:Performance)\nWHERE NOT (p)-[:POUR_EQUIPE]->(:Equipe) AND p.equipe_id IS NOT NULL\nMATCH (e:Equipe {id: p.equipe_id})\nMERGE (p)-[:POUR_EQUIPE]->(e)\n\nRETURN rep_lors_de, rep_realise, 'reparations_effectuees' AS statut"
+      },
+      "credentials": { "neo4j": { "id": "neo4j_cred_id", "name": "Neo4j NBA" } }
+    },
+
+    {
+      "id": "node_save_rapport",
+      "name": "Sauvegarder Rapport JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1280, 560],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const fs = require('fs');\nconst path = require('path');\n\nconst LOG_DIR = process.env.NBA_LOG_DIR || '/data/nba/logs';\nif (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });\n\nconst rapport = $input.first().json;\nconst date = new Date().toISOString().slice(0, 10);\nconst fname = path.join(LOG_DIR, `monitoring_${date}.json`);\n\nfs.writeFileSync(fname, JSON.stringify(rapport, null, 2));\nconsole.log(`Rapport sauvegardé : ${fname}`);\n\n// Garder uniquement les 30 derniers jours\nconst files = fs.readdirSync(LOG_DIR)\n  .filter(f => f.startsWith('monitoring_'))\n  .sort();\nif (files.length > 30) {\n  files.slice(0, files.length - 30).forEach(f => {\n    fs.unlinkSync(path.join(LOG_DIR, f));\n  });\n}\n\nreturn [{ json: { ...rapport, rapport_path: fname } }];"
+      }
+    }
+  ],
+
+  "connections": {
+    "Cron Monitoring (06h00)":      { "main": [[
+      { "node": "Invariant 1 — Nœuds Isolés",      "type": "main", "index": 0 },
+      { "node": "Invariant 2 — Complétude Matchs",  "type": "main", "index": 0 },
+      { "node": "Invariant 3 — Stats Cohérentes",   "type": "main", "index": 0 },
+      { "node": "Invariant 4 — Contrats Actifs",    "type": "main", "index": 0 },
+      { "node": "Rapport de Volume",                "type": "main", "index": 0 }
+    ]] },
+    "Invariant 1 — Nœuds Isolés":     { "main": [[{ "node": "Fusionner Résultats Invariants", "type": "main", "index": 0 }]] },
+    "Invariant 2 — Complétude Matchs":{ "main": [[{ "node": "Fusionner Résultats Invariants", "type": "main", "index": 1 }]] },
+    "Invariant 3 — Stats Cohérentes": { "main": [[{ "node": "Fusionner Résultats Invariants", "type": "main", "index": 2 }]] },
+    "Invariant 4 — Contrats Actifs":  { "main": [[{ "node": "Fusionner Résultats Invariants", "type": "main", "index": 3 }]] },
+    "Rapport de Volume":              { "main": [[{ "node": "Fusionner Résultats Invariants", "type": "main", "index": 4 }]] },
+    "Fusionner Résultats Invariants": { "main": [[{ "node": "Construire Rapport Final",        "type": "main", "index": 0 }]] },
+    "Construire Rapport Final":        { "main": [[{ "node": "Graphe Dégradé ?",               "type": "main", "index": 0 }]] },
+    "Graphe Dégradé ?": { "main": [
+      [{ "node": "Réparation Automatique",  "type": "main", "index": 0 }],
+      [{ "node": "Sauvegarder Rapport JSON","type": "main", "index": 0 }]
+    ]},
+    "Réparation Automatique": { "main": [[{ "node": "Sauvegarder Rapport JSON", "type": "main", "index": 0 }]] }
+  },
+
+  "settings": { "executionOrder": "v1" },
+  "tags": ["NBA", "Neo4j", "Monitoring", "Automatique"]
+}

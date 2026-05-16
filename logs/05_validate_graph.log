@@ -1,0 +1,55 @@
+2026-05-15 17:28:25,253 [INFO] ============================================================
+2026-05-15 17:28:25,253 [INFO] ÉTAPE 5 — VALIDATION DES INVARIANTS DU GRAPHE
+2026-05-15 17:28:25,254 [INFO] ============================================================
+2026-05-15 17:28:25,963 [INFO] --- Invariant 1 : Nœuds isolés ---
+2026-05-15 17:28:26,049 [ERROR]   ✗ CRITIQUE : 32 nœuds Joueur isolés (sans aucune relation)
+2026-05-15 17:28:26,080 [INFO]   ✓ Nœuds Match isolés : 0
+2026-05-15 17:28:26,297 [INFO]   ✓ Nœuds Performance isolés : 0
+2026-05-15 17:28:26,301 [INFO]   ✓ Nœuds Equipe isolés : 0
+2026-05-15 17:28:26,305 [INFO]   ✓ Nœuds Saison isolés : 0
+2026-05-15 17:28:26,387 [INFO]   ✓ Nœuds Classement isolés : 0
+2026-05-15 17:28:26,387 [INFO] --- Invariant 2 : Complétude des matchs ---
+2026-05-15 17:28:26,478 [INFO]   ✓ Tous les matchs ont exactement 1 équipe domicile + 1 visiteur
+2026-05-15 17:28:26,538 [INFO]   ✓ Tous les matchs sont reliés à une Saison
+2026-05-15 17:28:26,891 [WARNING]   ⚠ WARNING  : 122 matchs terminés avec nombre de performances anormal (< 10: 0, > 30: 122)
+2026-05-15 17:28:26,891 [INFO] --- Invariant 3 : Cohérence des statistiques ---
+2026-05-15 17:28:27,455 [INFO]   ✓ FGM ≤ FGA sur toutes les Performances
+2026-05-15 17:28:27,955 [INFO]   ✓ FG3M ≤ FG3A sur toutes les Performances
+2026-05-15 17:28:28,428 [INFO]   ✓ FTM ≤ FTA sur toutes les Performances
+2026-05-15 17:28:29,454 [INFO]   ✓ Cohérence points/tirs vérifiée (tolérance ±1)
+2026-05-15 17:28:29,742 [INFO]   ✓ Minutes dans les bornes [0, 53min]
+2026-05-15 17:28:29,742 [INFO] --- Invariant 4 : Unicité des contrats actifs ---
+2026-05-15 17:28:29,762 [ERROR]   ✗ CRITIQUE : 160 joueurs avec plus d'un contrat actif=true simultané
+2026-05-15 17:28:29,762 [INFO] --- Invariant 5 : Cohérence des classements ---
+2026-05-15 17:28:30,067 [INFO]   ✓ W + L = G sur tous les Classements
+2026-05-15 17:28:30,067 [INFO] --- Invariant 6 : Performances orphelines ---
+2026-05-15 17:28:30,888 [INFO]   ✓ Toutes les Performances ont un Joueur via REALISE
+2026-05-15 17:28:31,678 [INFO]   ✓ Toutes les Performances ont un Match via LORS_DE
+2026-05-15 17:28:32,380 [INFO]   ✓ Toutes les Performances ont une Equipe via POUR_EQUIPE
+2026-05-15 17:28:32,380 [INFO] --- Invariant 7 : Rapport de volume ---
+2026-05-15 17:28:32,383 [INFO]   ✓ Saison: 20
+2026-05-15 17:28:32,386 [INFO]   ✓ Equipe: 30
+2026-05-15 17:28:32,389 [INFO]   ✓ Joueur: 2,687
+2026-05-15 17:28:32,392 [INFO]   ✓ Match: 26,622
+2026-05-15 17:28:32,396 [INFO]   ✓ Performance: 558,667
+2026-05-15 17:28:32,400 [INFO]   ✓ Classement: 210,313
+2026-05-15 17:28:32,403 [INFO]   Relations CONTIENT: 26,622
+2026-05-15 17:28:32,406 [INFO]   Relations DISPUTE: 26,622
+2026-05-15 17:28:32,409 [INFO]   Relations VISITE: 26,622
+2026-05-15 17:28:32,444 [INFO]   Relations JOUE_POUR: 7,228
+2026-05-15 17:28:32,447 [INFO]   Relations REALISE: 558,667
+2026-05-15 17:28:32,451 [INFO]   Relations LORS_DE: 558,667
+2026-05-15 17:28:32,454 [INFO]   Relations POUR_EQUIPE: 558,667
+2026-05-15 17:28:32,458 [INFO]   Relations A_CLASSEMENT: 210,313
+2026-05-15 17:28:32,458 [INFO] --- Invariant 8 : Requêtes analytiques de sanité ---
+2026-05-15 17:28:32,537 [INFO]   ✓ Top scoreur dernière saison: Luka Doncic (31.4 pts/match sur 31 matchs)
+2026-05-15 17:28:33,289 [INFO]   ✓ Joueurs avec au moins 1 match via Performance: 2,611
+2026-05-15 17:28:33,290 [INFO] ============================================================
+2026-05-15 17:28:33,290 [ERROR] GRAPHE DÉGRADÉ — 2 erreur(s) critique(s) :
+2026-05-15 17:28:33,290 [ERROR]   • 32 nœuds Joueur isolés (sans aucune relation)
+2026-05-15 17:28:33,290 [ERROR]   • 160 joueurs avec plus d'un contrat actif=true simultané
+2026-05-15 17:28:33,290 [ERROR] Consulter cypher/reparation.cypher pour les requêtes de réparation
+2026-05-15 17:28:33,290 [WARNING] 1 warning(s) :
+2026-05-15 17:28:33,290 [WARNING]   • 122 matchs terminés avec nombre de performances anormal (< 10: 0, > 30: 122)
+2026-05-15 17:28:33,291 [INFO] ÉTAPE 5 TERMINÉE en 8.0s — Statut : DÉGRADÉ
+2026-05-15 17:28:33,291 [INFO] ============================================================

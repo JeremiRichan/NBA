@@ -1,0 +1,37 @@
+2026-05-15 17:11:56,933 [INFO] ============================================================
+2026-05-15 17:11:56,933 [INFO] ÉTAPE 2 — INDEX ET CONTRAINTES NEO4J
+2026-05-15 17:11:56,933 [INFO] ============================================================
+2026-05-15 17:11:58,277 [INFO] --- Création des contraintes d'unicité ---
+2026-05-15 17:11:58,681 [INFO]   ✓ Contrainte : Saison.id
+2026-05-15 17:11:58,815 [INFO]   ✓ Contrainte : Equipe.id
+2026-05-15 17:11:58,929 [INFO]   ✓ Contrainte : Joueur.id
+2026-05-15 17:11:59,112 [INFO]   ✓ Contrainte : Match.id
+2026-05-15 17:11:59,300 [INFO]   ✓ Contrainte : Classement.id
+2026-05-15 17:11:59,401 [INFO]   ✓ Contrainte : Performance.id
+2026-05-15 17:11:59,401 [INFO] --- Création des index RANGE ---
+2026-05-15 17:11:59,497 [INFO]   ✓ Index range : Match.date_est
+2026-05-15 17:11:59,587 [INFO]   ✓ Index range : Classement.date
+2026-05-15 17:11:59,757 [INFO]   ✓ Index range : Saison.annee
+2026-05-15 17:11:59,757 [INFO] --- Création des index Full-Text ---
+2026-05-15 17:11:59,871 [INFO]   ✓ Index fulltext : ['Joueur'] sur ['nom']
+2026-05-15 17:12:01,052 [INFO]   ✓ Index fulltext : ['Equipe'] sur ['nom', 'ville']
+2026-05-15 17:12:01,053 [INFO] --- Attente que tous les index soient ONLINE ---
+2026-05-15 17:12:02,211 [INFO]   ✓ Tous les index sont ONLINE
+2026-05-15 17:12:02,506 [INFO] --- Registre complet des index ---
+2026-05-15 17:12:03,136 [INFO]   [ONLINE] FULLTEXT             idx_ft_equipe_nom                        (['Equipe'] → ['nom', 'ville'])
+2026-05-15 17:12:03,136 [INFO]   [ONLINE] FULLTEXT             idx_ft_joueur_nom                        (['Joueur'] → ['nom'])
+2026-05-15 17:12:03,137 [INFO]   [ONLINE] LOOKUP               index_1b9dcc97                           (None → None)
+2026-05-15 17:12:03,137 [INFO]   [ONLINE] LOOKUP               index_460996c0                           (None → None)
+2026-05-15 17:12:03,137 [INFO]   [ONLINE] RANGE                contrainte_classement_id                 (['Classement'] → ['id'])
+2026-05-15 17:12:03,137 [INFO]   [ONLINE] RANGE                contrainte_equipe_id                     (['Equipe'] → ['id'])
+2026-05-15 17:12:03,137 [INFO]   [ONLINE] RANGE                contrainte_joueur_id                     (['Joueur'] → ['id'])
+2026-05-15 17:12:03,138 [INFO]   [ONLINE] RANGE                contrainte_match_id                      (['Match'] → ['id'])
+2026-05-15 17:12:03,138 [INFO]   [ONLINE] RANGE                contrainte_performance_id                (['Performance'] → ['id'])
+2026-05-15 17:12:03,138 [INFO]   [ONLINE] RANGE                contrainte_saison_id                     (['Saison'] → ['id'])
+2026-05-15 17:12:03,138 [INFO]   [ONLINE] RANGE                idx_classement_date                      (['Classement'] → ['date'])
+2026-05-15 17:12:03,138 [INFO]   [ONLINE] RANGE                idx_match_date                           (['Match'] → ['date_est'])
+2026-05-15 17:12:03,138 [INFO]   [ONLINE] RANGE                idx_saison_annee                         (['Saison'] → ['annee'])
+2026-05-15 17:12:03,139 [INFO] ============================================================
+2026-05-15 17:12:03,139 [INFO] ÉTAPE 2 TERMINÉE en 6.2s
+2026-05-15 17:12:03,139 [INFO] Prochaine étape : python charger_nodes.py
+2026-05-15 17:12:03,140 [INFO] ============================================================
